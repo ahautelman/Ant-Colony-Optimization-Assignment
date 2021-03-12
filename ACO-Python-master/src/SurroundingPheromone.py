@@ -37,3 +37,15 @@ class SurroundingPheromone:
             return self.south
         else:
             return None
+
+    def add(self, dir, to):
+        if dir == Direction.north:
+            self.north += to
+        elif dir == Direction.east:
+            self.east += to
+        elif dir == Direction.west:
+            self.west += to
+        elif dir == Direction.south:
+            self.south += to
+        else:
+            return None
