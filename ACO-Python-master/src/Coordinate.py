@@ -48,6 +48,8 @@ class Coordinate:
     # @param other Other Coordinate to check
     # @return boolean whether they're equal
     def __eq__(self, other):
+        if not isinstance(other, Coordinate):
+            return NotImplemented
         return self.x == other.x and self.y == other.y
 
 

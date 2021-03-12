@@ -18,6 +18,9 @@ class Route:
         self.route.append(dir)
         return
 
+    def pop(self):
+        self.route.pop()
+
     # Returns the length of the route
     # @return length of the route
     def size(self):
