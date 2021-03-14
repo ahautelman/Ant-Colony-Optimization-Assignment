@@ -49,3 +49,8 @@ class SurroundingPheromone:
             self.south += to
         else:
             return None
+
+    def __str__(self):
+        string = ""
+        string += "north: " + str(self.north) + ";\n" + "east: " + str(self.east) + ";\n" + "south: " + str(self.south) + ";\n" + "west: " + str(self.west) + ";\n"
+        return string

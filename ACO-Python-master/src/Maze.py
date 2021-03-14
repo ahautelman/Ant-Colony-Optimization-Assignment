@@ -1,3 +1,4 @@
+from copy import copy, deepcopy
 import os
 import sys
 import traceback
@@ -17,33 +18,35 @@ class Maze:
     # @param width width of Maze (horizontal)
     # @param length length of Maze (vertical)
     # pheromone data structure will be initialized when the initialize_pheromone method is called
-    def __init__(self, walls, width, length, start, end):       # TODO: i dont think we need to give the start and end coordinates since they are found in PathSpecification
+    def __init__(self, walls, width, length):       # TODO: i dont think we need to give the start and end coordinates since they are found in PathSpecification
         self.walls = walls
         self.length = length
         self.width = width
-        self.start = start
-        self.end = end
-        self.pheromones = None
+        # self.start = start
+        # self.end = end
+        self.pheromones = deepcopy(walls)
         self.initialize_pheromones()
 
     # Initialize pheromones to a start value.
     def initialize_pheromones(self):
-        pheromone_matrix = self.walls
-
+        # pheromone_matrix = copy.copy(self.walls)
+        # print("wall:", self.walls, "\n")
         for x in range(self.width):
             for y in range(self.length):
-                if self.walls[x, y] == 1:
-                    north_pheromone = 1 if y - 1 >= 0 and self.walls[x, y - 1] == 1 else 0
-                    east_pheromone = 1 if x + 1 <= self.width and self.walls[x + 1, y] == 1 else 0
-                    south_pheromone = 1 if y + 1 <= self.length and self.walls[x, y + 1] == 1 else 0
-                    west_pheromone = 1 if x - 1 >= 0 and self.walls[x - 1, y] == 1 else 0
-                    pheromone_matrix[x, y] = SurroundingPheromone(north_pheromone, east_pheromone, south_pheromone,
+                if self.walls[x][y] == 1:
+                    north_pheromone = 1 if y - 1 >= 0 and self.walls[x][y - 1] == 1 else 0
+                    east_pheromone = 1 if x + 1 < self.width and self.walls[x + 1][y] == 1 else 0
+                    south_pheromone = 1 if y + 1 < self.length and self.walls[x][y + 1] == 1 else 0
+                    west_pheromone = 1 if x - 1 >= 0 and self.walls[x - 1][y] == 1 else 0
+                    self.pheromones[x][y] = SurroundingPheromone(north_pheromone, east_pheromone, south_pheromone,
                                                                   west_pheromone)
+                    # print(x, ", ", y-1, " ", north_pheromone, " ", self.walls[x][y - 1])
                 else:
-                    pheromone_matrix[x, y] = SurroundingPheromone(0, 0, 0, 0)
+                    self.pheromones[x][y] = SurroundingPheromone(0, 0, 0, 0)
 
-        self.pheromones = pheromone_matrix
-        return pheromone_matrix
+
+        # self.pheromones = pheromone_matrix
+        # return pheromone_matrix
 
     # Reset the maze for a new shortest path problem.
     def reset(self):
@@ -52,22 +55,22 @@ class Maze:
     # Update the pheromones along a certain route according to a certain Q
     # @param r The route of the ants
     # @param Q Normalization factor for amount of dropped pheromone
-    def add_pheromone_route(self, route, q):
-        pheromone = q / len(route)
-        coordinate = self.start
+    def add_pheromone_route(self, route, q, start):
+        pheromone = q / len(route.route)
+        coordinate = start
 
         # not checking the last node since it is going to be the end node
-        for i in range(len(route) - 2):
-            direction = route[i]
-            self.pheromones[coordinate.x, coordinate.y].add(dir, pheromone)
+        for i in range(len(route.route) - 2):
+            direction = route.route[i]
+            self.pheromones[coordinate.x][coordinate.y].add(dir, pheromone)
             coordinate = coordinate.add_direction(direction)
 
     # Update pheromones for a list of routes
     # @param routes A list of routes
     # @param Q Normalization factor for amount of dropped pheromone
-    def add_pheromone_routes(self, routes, q):
+    def add_pheromone_routes(self, routes, q, start):
         for r in routes:
-            self.add_pheromone_route(r, q)
+            self.add_pheromone_route(r, q, start)
 
     # Evaporate pheromone
     # @param rho evaporation factor
@@ -81,12 +84,12 @@ class Maze:
 
         for x in range(self.width):
             for y in range(self.length):
-                if self.walls[x, y] == 1:
-                    north_e = pheromones[x, y].get(Direction(north)) * (1 - rho)
-                    east_e = pheromones[x, y].get(Direction(east)) * (1 - rho)
-                    south_e = pheromones[x, y].get(Direction(south)) * (1 - rho)
-                    west_e = pheromones[x, y].get(Direction(west)) * (1 - rho)
-                    pheromones[x, y] = SurroundingPheromone(north_e, east_e, south_e, west_e)
+                if self.walls[x][y] == 1:
+                    north_e = pheromones[x][y].get(Direction(north)) * (1 - rho)
+                    east_e = pheromones[x][y].get(Direction(east)) * (1 - rho)
+                    south_e = pheromones[x][y].get(Direction(south)) * (1 - rho)
+                    west_e = pheromones[x][y].get(Direction(west)) * (1 - rho)
+                    pheromones[x][y] = SurroundingPheromone(north_e, east_e, south_e, west_e)
 
     # Width getter
     # @return width of the maze
@@ -102,13 +105,13 @@ class Maze:
     # @param position The position to check the neighbours of.
     # @return the pheromones of the neighbouring positions.
     def get_surrounding_pheromone(self, position):
-        return self.pheromones[position.x, position.y]
+        return self.pheromones[position.x][position.y]
 
     # Pheromone getter for a specific position. If the position is not in bounds returns 0
     # @param pos Position coordinate
     # @return pheromone at point
     def get_pheromone(self, pos):
-        return self.pheromones[pos.x, pos.y]
+        return self.pheromones[pos.x][pos.y]
 
     # Check whether a coordinate lies in the current maze.
     # @param position The position to be checked

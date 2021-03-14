@@ -4,6 +4,8 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 import time
 from src.Maze import Maze
 from src.PathSpecification import PathSpecification
+from src.Ant import Ant
+from src.Coordinate import Coordinate
 
 # Class representing the first assignment. Finds shortest path between two points in a maze according to a specific
 # path specification.
@@ -22,12 +24,25 @@ class AntColonyOptimization:
         self.q = q
         self.evaporation = evaporation
 
-     # Loop that starts the shortest path process
-     # @param spec Spefication of the route we wish to optimize
-     # @return ACO optimized route
+    # Loop that starts the shortest path process
+    # @param spec Spefication of the route we wish to optimize
+    # @return ACO optimized route
     def find_shortest_route(self, path_specification):
-        self.maze.reset()
-        return None
+        for g in range(self.generations):
+            self.genOfAnts(path_specification)
+        ant = Ant(self.maze, path_specification)
+        return ant.find_final_route()
+
+    # Creates given amuount of ants, finds their routes and updates the pheromone matrix
+    def genOfAnts(self, path_specification):
+        routes = []
+        for n in range(self.ants_per_gen):
+            ant = Ant(self.maze, path_specification)
+            routes.append(ant.find_route())
+            print(routes[0].remove_last())
+        self.maze.evaporate(self.evaporation)
+        self.maze.add_pheromone_routes(routes, self.q, path_specification.start)
+
 
 # Driver function for Assignment 1
 if __name__ == "__main__":
@@ -38,9 +53,11 @@ if __name__ == "__main__":
     evap = 0.1
 
     #construct the optimization objects
-    maze = Maze.create_maze("./../data/hard maze.txt")
-    spec = PathSpecification.read_coordinates("./../data/hard coordinates.txt")
-    aco = AntColonyOptimization(maze, gen, no_gen, q, evap)
+    maze = Maze.create_maze("./../data/easy maze.txt")
+    coord = Coordinate(4, 0)
+    print(maze.get_surrounding_pheromone(coord))
+    spec = PathSpecification.read_coordinates("./../data/easy coordinates.txt")
+    aco = AntColonyOptimization(maze, 1, 1, q, evap)
 
     #save starting time
     start_time = int(round(time.time() * 1000))
