@@ -1,4 +1,4 @@
-from copy import copy, deepcopy
+from copy import deepcopy
 import os
 import sys
 import traceback
@@ -18,7 +18,7 @@ class Maze:
     # @param width width of Maze (horizontal)
     # @param length length of Maze (vertical)
     # pheromone data structure will be initialized when the initialize_pheromone method is called
-    def __init__(self, walls, width, length):       # TODO: i dont think we need to give the start and end coordinates since they are found in PathSpecification
+    def __init__(self, walls, width, length):
         self.walls = walls
         self.length = length
         self.width = width
@@ -29,21 +29,17 @@ class Maze:
 
     # Initialize pheromones to a start value.
     def initialize_pheromones(self):
-        # pheromone_matrix = copy.copy(self.walls)
-        # print("wall:", self.walls, "\n")
         for x in range(self.width):
             for y in range(self.length):
                 if self.walls[x][y] == 1:
-                    north_pheromone = 1 if y - 1 >= 0 and self.walls[x][y - 1] == 1 else 0
+                    north_pheromone = 1 if y - 1 >= 0 and self.walls[x][y-1] == 1 else 0
                     east_pheromone = 1 if x + 1 < self.width and self.walls[x + 1][y] == 1 else 0
                     south_pheromone = 1 if y + 1 < self.length and self.walls[x][y + 1] == 1 else 0
                     west_pheromone = 1 if x - 1 >= 0 and self.walls[x - 1][y] == 1 else 0
                     self.pheromones[x][y] = SurroundingPheromone(north_pheromone, east_pheromone, south_pheromone,
-                                                                  west_pheromone)
-                    # print(x, ", ", y-1, " ", north_pheromone, " ", self.walls[x][y - 1])
+                                                                 west_pheromone)
                 else:
                     self.pheromones[x][y] = SurroundingPheromone(0, 0, 0, 0)
-
 
         # self.pheromones = pheromone_matrix
         # return pheromone_matrix
@@ -60,9 +56,8 @@ class Maze:
         coordinate = start
 
         # not checking the last node since it is going to be the end node
-        for i in range(len(route.route) - 2):
-            direction = route.route[i]
-            self.pheromones[coordinate.x][coordinate.y].add(dir, pheromone)
+        for direction in route.get_route():
+            self.pheromones[coordinate.x][coordinate.y].add(direction, pheromone)
             coordinate = coordinate.add_direction(direction)
 
     # Update pheromones for a list of routes
