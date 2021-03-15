@@ -1,5 +1,4 @@
 import os, sys
-
 sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 
 import time
@@ -30,7 +29,7 @@ class AntColonyOptimization:
     # @param generations the amount of generations.
     # @param Q normalization factor for the amount of dropped pheromone
     # @param evaporation the evaporation factor.
-    def __init__(self, maze, ants_per_gen, generations, q, evaporation):
+    def __init__(self, maze, ants_per_gen, generations, q, evaporation, stopping_cri):
         self.maze = maze
         self.ants_per_gen = ants_per_gen
         self.generations = generations
@@ -39,16 +38,20 @@ class AntColonyOptimization:
         self.best_route = None
         self.best_route_size = math.inf
         self.generations_since_best = 0
+        self.stopping_cri = stopping_cri
 
     # Loop that starts the shortest path process
     # @param spec Spefication of the route we wish to optimize
     # @return ACO optimized route
     def find_shortest_route(self, path_specification):
-        for g in range(self.generations - 1):
+        for g in range(self.generations):
+            if self.generations_since_best > self.stopping_cri:
+                break
             self.gen_of_ants(path_specification)
         return self.best_route
 
     # Creates given amount of ants, finds their routes and updates the pheromone matrix
+
     def gen_of_ants(self, path_specification):
         routes = []
         for n in range(self.ants_per_gen):
@@ -58,23 +61,30 @@ class AntColonyOptimization:
         self.maze.add_pheromone_routes(routes, self.q, path_specification.start)
         shortest_route = find_shortest(routes)
 
-        print(shortest_route.size())
+        if shortest_route.size() < self.best_route_size:
+            self.best_route = shortest_route
+            self.generations_since_best = 0
+            self.best_route_size = shortest_route.size()
+        else:
+            self.generations_since_best += 1
+        print("best of the generation:", shortest_route.size(), "current best:", self.best_route_size)
         return routes
 
 
 # Driver function for Assignment 1
 if __name__ == "__main__":
     # parameters
-    gen = 5
-    no_gen = 50
-    q = 100
-    evap = 0.2
+    gen = 10
+    no_gen = 10000
+    q = 2000
+    evap = 0.15
+    stopping_criteria = 100
 
     # construct the optimization objects
-    maze = Maze.create_maze("./../data/open-area.txt")
+    maze = Maze.create_maze("./../data/easy maze.txt")
     coord = Coordinate(4, 0)
-    spec = PathSpecification.read_coordinates("./../data/open-area-coordinates.txt")
-    aco = AntColonyOptimization(maze, gen, no_gen, q, evap)
+    spec = PathSpecification.read_coordinates("./../data/easy coordinates.txt")
+    aco = AntColonyOptimization(maze, gen, no_gen, q, evap, stopping_criteria)
 
     # save starting time
     start_time = int(round(time.time() * 1000))
@@ -86,7 +96,7 @@ if __name__ == "__main__":
     print("Time taken: " + str((int(round(time.time() * 1000)) - start_time) / 1000.0))
 
     # save solution
-    shortest_route.write_to_file("./../data/open_solution.txt")
+    shortest_route.write_to_file("./../data/easy_maze.txt")
 
     # print route size
     print("Route size: " + str(shortest_route.size()))
