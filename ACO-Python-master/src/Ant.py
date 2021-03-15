@@ -58,8 +58,6 @@ class Ant:  # TODO: clean up this spaghetti code
         while self.current_position != self.end:
             self.tabu_list.append(self.current_position)                     # add current position to visited nodes
             surrounding_pheromone = self.maze.get_surrounding_pheromone(self.current_position)
-            if self.is_crossroad(surrounding_pheromone):
-                self.crossroads.append(Crossroad(self.current_position, 0))  # save node in crossroads stack
             self.pick_direction(route, surrounding_pheromone)                # update current position and route
             self.update_crossroad()                                          # update the number of steps taken from last crossroad point.
         return route
@@ -74,6 +72,8 @@ class Ant:  # TODO: clean up this spaghetti code
     # @param route Route describing the currently chosen route.
     # @param surrounding_pheromone SurroundingPheromone containing the pheromone information around a certain point in the maze.
     def pick_direction(self, route, surrounding_pheromone):
+        if self.is_crossroad(surrounding_pheromone):
+            self.crossroads.append(Crossroad(self.current_position, 0))  # save node in crossroads stack
         directions = self.get_possible_directions(surrounding_pheromone)        # list containing possible directions.
         if not directions:                                                      # ant encountered a dead end.
             if not self.crossroads:                                             # stack of crossroads is empty
