@@ -3,6 +3,7 @@ import os, sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 
 import time
+import math
 from src.Maze import Maze
 from src.PathSpecification import PathSpecification
 from src.Ant import Ant
@@ -35,6 +36,9 @@ class AntColonyOptimization:
         self.generations = generations
         self.q = q
         self.evaporation = evaporation
+        self.best_route = None
+        self.best_route_size = math.inf
+        self.generations_since_best = 0
 
     # Loop that starts the shortest path process
     # @param spec Spefication of the route we wish to optimize
@@ -42,9 +46,7 @@ class AntColonyOptimization:
     def find_shortest_route(self, path_specification):
         for g in range(self.generations - 1):
             self.gen_of_ants(path_specification)
-        routes = self.gen_of_ants(path_specification)
-        shortest_route = find_shortest(routes)
-        return shortest_route
+        return self.best_route
 
     # Creates given amount of ants, finds their routes and updates the pheromone matrix
     def gen_of_ants(self, path_specification):
@@ -55,6 +57,7 @@ class AntColonyOptimization:
         self.maze.evaporate(self.evaporation)
         self.maze.add_pheromone_routes(routes, self.q, path_specification.start)
         shortest_route = find_shortest(routes)
+
         print(shortest_route.size())
         return routes
 
@@ -62,15 +65,15 @@ class AntColonyOptimization:
 # Driver function for Assignment 1
 if __name__ == "__main__":
     # parameters
-    gen = 1
-    no_gen = 1
-    q = 1600
-    evap = 0.1
+    gen = 5
+    no_gen = 50
+    q = 100
+    evap = 0.2
 
     # construct the optimization objects
-    maze = Maze.create_maze("./../data/easy maze.txt")
+    maze = Maze.create_maze("./../data/open-area.txt")
     coord = Coordinate(4, 0)
-    spec = PathSpecification.read_coordinates("./../data/easy coordinates.txt")
+    spec = PathSpecification.read_coordinates("./../data/open-area-coordinates.txt")
     aco = AntColonyOptimization(maze, gen, no_gen, q, evap)
 
     # save starting time
@@ -83,7 +86,7 @@ if __name__ == "__main__":
     print("Time taken: " + str((int(round(time.time() * 1000)) - start_time) / 1000.0))
 
     # save solution
-    shortest_route.write_to_file("./../data/easy_solution.txt")
+    shortest_route.write_to_file("./../data/open_solution.txt")
 
     # print route size
     print("Route size: " + str(shortest_route.size()))

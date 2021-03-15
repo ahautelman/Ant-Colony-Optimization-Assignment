@@ -48,18 +48,18 @@ class Ant:  # TODO: clean up this spaghetti code
         self.end = path_specification.get_end()
         self.current_position = self.start
         self.rand = random
-        self.tabu_list = []         # list of visited nodes.
-        self.crossroads = []        # list of object of class Crossroad, stores the last encountered crossroad and the number of steps taken since.
+        self.tabu_list = []  # list of visited nodes.
+        self.crossroads = []  # list of object of class Crossroad, stores the last encountered crossroad and the number of steps taken since.
 
     # Method that performs a single run through the maze by the ant.
     # @return The route the ant found through the maze.
     def find_route(self):
         route = Route(self.start)
         while self.current_position != self.end:
-            self.tabu_list.append(self.current_position)                     # add current position to visited nodes
+            self.tabu_list.append(self.current_position)  # add current position to visited nodes
             surrounding_pheromone = self.maze.get_surrounding_pheromone(self.current_position)
-            self.pick_direction(route, surrounding_pheromone)                # update current position and route
-            self.update_crossroad()                                          # update the number of steps taken from last crossroad point.
+            self.pick_direction(route, surrounding_pheromone)  # update current position and route
+            self.update_crossroad()  # update the number of steps taken from last crossroad point.
         return route
 
     # Method checks whether a node is a crossroad (there a more than 1 possible directions to pick from).
@@ -74,20 +74,20 @@ class Ant:  # TODO: clean up this spaghetti code
     def pick_direction(self, route, surrounding_pheromone):
         if self.is_crossroad(surrounding_pheromone):
             self.crossroads.append(Crossroad(self.current_position, 0))  # save node in crossroads stack
-        directions = self.get_possible_directions(surrounding_pheromone)        # list containing possible directions.
-        if not directions:                                                      # ant encountered a dead end.
-            if not self.crossroads:                                             # stack of crossroads is empty
+        directions = self.get_possible_directions(surrounding_pheromone)  # list containing possible directions.
+        if not directions:  # ant encountered a dead end.
+            if not self.crossroads:  # stack of crossroads is empty
                 print(self.current_position)
                 raise ValueError("Encountered dead end in maze!")
-            crossroad = self.crossroads.pop()                                   # get last encountered crossroad
-            self.current_position = crossroad.get_position()                    # update position to that node
+            crossroad = self.crossroads.pop()  # get last encountered crossroad
+            self.current_position = crossroad.get_position()  # update position to that node
             for i in range(crossroad.get_steps()):
-                route.pop()                                                     # remove all picked directions up to the crossroad.
+                route.pop()  # remove all picked directions up to the crossroad.
             self.pick_direction(route, self.maze.get_surrounding_pheromone(self.current_position))
             return
-        probabilities = [0, 0, 0, 0]                                            # list of probabilities for picking each direction.
+        probabilities = [0, 0, 0, 0]  # list of probabilities for picking each direction.
         pheromone_sum = sum_surrounding_pheromones(surrounding_pheromone,
-                                                   directions)                  # sum of all the possible choices.
+                                                   directions)  # sum of all the possible choices.
         # east corresponds to index 0
         # N -> 1
         # W -> 2
@@ -98,7 +98,7 @@ class Ant:  # TODO: clean up this spaghetti code
         direction = roulette_wheel(probabilities, rand)
 
         self.current_position = self.current_position.add_direction(direction)  # update position
-        route.add(direction)                                                    # update route
+        route.add(direction)  # update route
 
     # Method updates the number of steps taken from the last crossroad node.
     def update_crossroad(self):
