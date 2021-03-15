@@ -3,6 +3,8 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 
 import time
 import math
+import multiprocessing
+from contextlib import contextmanager
 from src.Maze import Maze
 from src.PathSpecification import PathSpecification
 from src.Ant import Ant
@@ -19,6 +21,12 @@ def find_shortest(routes):
         if not shortest.shorter_than(route):
             shortest = route
     return shortest
+
+@contextmanager
+def poolcontext(*args, **kwargs):
+    pool = multiprocessing.Pool(*args, **kwargs)
+    yield pool
+    pool.terminate()
 
 
 class AntColonyOptimization:
@@ -52,11 +60,16 @@ class AntColonyOptimization:
 
     # Creates given amount of ants, finds their routes and updates the pheromone matrix
 
+    def get_route(self, path_specification):
+        return Ant(self.maze, path_specification).find_route()
+
     def gen_of_ants(self, path_specification):
-        routes = []
-        for n in range(self.ants_per_gen):
-            ant = Ant(self.maze, path_specification)
-            routes.append(ant.find_route())
+        # routes = []
+        with poolcontext(multiprocessing.cpu_count()) as pool:
+            routes = pool.map(self.get_route, [path_specification for _ in range(self.ants_per_gen)])
+        # for n in range(self.ants_per_gen):
+        #     ant = Ant(self.maze, path_specification)
+        #     routes.append(ant.find_route())
         self.maze.evaporate(self.evaporation)
         self.maze.add_pheromone_routes(routes, self.q, path_specification.start)
         shortest_route = find_shortest(routes)
@@ -74,16 +87,16 @@ class AntColonyOptimization:
 # Driver function for Assignment 1
 if __name__ == "__main__":
     # parameters
-    gen = 10
+    gen = 30
     no_gen = 10000
-    q = 2000
+    q = 1000
     evap = 0.15
-    stopping_criteria = 100
+    stopping_criteria = 5
 
     # construct the optimization objects
-    maze = Maze.create_maze("./../data/easy maze.txt")
+    maze = Maze.create_maze("./../data/hard maze.txt")
     coord = Coordinate(4, 0)
-    spec = PathSpecification.read_coordinates("./../data/easy coordinates.txt")
+    spec = PathSpecification.read_coordinates("./../data/hard coordinates.txt")
     aco = AntColonyOptimization(maze, gen, no_gen, q, evap, stopping_criteria)
 
     # save starting time
@@ -96,7 +109,7 @@ if __name__ == "__main__":
     print("Time taken: " + str((int(round(time.time() * 1000)) - start_time) / 1000.0))
 
     # save solution
-    shortest_route.write_to_file("./../data/easy_maze.txt")
+    shortest_route.write_to_file("./../data/hard_maze.txt")
 
     # print route size
     print("Route size: " + str(shortest_route.size()))
