@@ -22,11 +22,11 @@ def find_shortest(routes):
             shortest = route
     return shortest
 
-@contextmanager
-def poolcontext(*args, **kwargs):
-    pool = multiprocessing.Pool(*args, **kwargs)
-    yield pool
-    pool.terminate()
+# @contextmanager
+# def poolcontext(*args, **kwargs):
+#     pool = multiprocessing.Pool(*args, **kwargs)
+#     yield pool
+#     pool.terminate()
 
 
 class AntColonyOptimization:
@@ -66,12 +66,12 @@ class AntColonyOptimization:
         return Ant(self.maze, path_specification).find_route()
 
     def gen_of_ants(self, path_specification):
-        # routes = []
-        with poolcontext(multiprocessing.cpu_count()) as pool:
-            routes = pool.map(self.get_route, [path_specification for _ in range(self.ants_per_gen)])
-        # for n in range(self.ants_per_gen):
-        #     ant = Ant(self.maze, path_specification)
-        #     routes.append(ant.find_route())
+        routes = []
+        # with poolcontext(multiprocessing.cpu_count()) as pool:
+        #     routes = pool.map(self.get_route, [path_specification for _ in range(self.ants_per_gen)])
+        for n in range(self.ants_per_gen):
+            ant = Ant(self.maze, path_specification)
+            routes.append(ant.find_route())
         self.maze.evaporate(self.evaporation)
         self.maze.add_pheromone_routes(routes, self.q, path_specification.start)
         shortest_route = find_shortest(routes)
@@ -93,19 +93,19 @@ class AntColonyOptimization:
 
 
 # Driver function for Assignment 1
+# Driver function for Assignment 1
 if __name__ == "__main__":
     # parameters
-    gen = 10
+    # medium best - 125
+
+    gen = 15
     no_gen = 100
-    q = 1000
-    evap = 0.1
-    stopping_criteria = 10
-
-
+    q = 500
+    evap = 0.05
+    stopping_criteria = 100
 
     # construct the optimization objects
     maze = Maze.create_maze("./../data/hard maze.txt")
-    coord = Coordinate(4, 0)
     spec = PathSpecification.read_coordinates("./../data/hard coordinates.txt")
     aco = AntColonyOptimization(maze, gen, no_gen, q, evap, stopping_criteria)
 
@@ -120,9 +120,10 @@ if __name__ == "__main__":
 
     plt.plot([i for i in range(no_gen)], aco.avg_per_gens, color='blue')
     plt.plot([i for i in range(no_gen)], aco.best_per_gens, color='red')
-    plt.title("Showing for every generation: average length in red, shortest length in blue")
+    plt.title("Parameters: " + "Q: " + str(q) + ", ants per gen: " + str(gen) + ", evaporation: " + str(evap))
     plt.ylabel('length of path')
     plt.xlabel('generations')
+    plt.legend(["average length", "shortest length"])
     plt.show()
 
     # save solution
