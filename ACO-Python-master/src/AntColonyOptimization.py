@@ -1,6 +1,6 @@
 import os, sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
-
+import matplotlib.pyplot as plt
 import time
 import math
 import multiprocessing
@@ -47,14 +47,16 @@ class AntColonyOptimization:
         self.best_route_size = math.inf
         self.generations_since_best = 0
         self.stopping_cri = stopping_cri
+        self.avg_per_gens = []
+        self.best_per_gens = []
 
     # Loop that starts the shortest path process
     # @param spec Spefication of the route we wish to optimize
     # @return ACO optimized route
     def find_shortest_route(self, path_specification):
         for g in range(self.generations):
-            if self.generations_since_best > self.stopping_cri:
-                break
+            # if self.generations_since_best > self.stopping_cri:
+            #     break
             self.gen_of_ants(path_specification)
         return self.best_route
 
@@ -74,6 +76,12 @@ class AntColonyOptimization:
         self.maze.add_pheromone_routes(routes, self.q, path_specification.start)
         shortest_route = find_shortest(routes)
 
+        sum = 0
+        for i in routes:
+            sum += i.size()
+
+        self.avg_per_gens.append(sum / len(routes))
+        self.best_per_gens.append(shortest_route.size())
         if shortest_route.size() < self.best_route_size:
             self.best_route = shortest_route
             self.generations_since_best = 0
@@ -87,11 +95,13 @@ class AntColonyOptimization:
 # Driver function for Assignment 1
 if __name__ == "__main__":
     # parameters
-    gen = 30
-    no_gen = 10000
+    gen = 10
+    no_gen = 100
     q = 1000
-    evap = 0.15
-    stopping_criteria = 5
+    evap = 0.1
+    stopping_criteria = 10
+
+
 
     # construct the optimization objects
     maze = Maze.create_maze("./../data/hard maze.txt")
@@ -108,8 +118,15 @@ if __name__ == "__main__":
     # print time taken
     print("Time taken: " + str((int(round(time.time() * 1000)) - start_time) / 1000.0))
 
+    plt.plot([i for i in range(no_gen)], aco.avg_per_gens, color='blue')
+    plt.plot([i for i in range(no_gen)], aco.best_per_gens, color='red')
+    plt.title("Showing for every generation: average length in red, shortest length in blue")
+    plt.ylabel('length of path')
+    plt.xlabel('generations')
+    plt.show()
+
     # save solution
-    shortest_route.write_to_file("./../data/hard_maze.txt")
+    shortest_route.write_to_file("./../data/hard solution.txt")
 
     # print route size
     print("Route size: " + str(shortest_route.size()))
