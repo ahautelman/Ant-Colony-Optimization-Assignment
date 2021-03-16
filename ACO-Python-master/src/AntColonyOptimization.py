@@ -87,12 +87,13 @@ class AntColonyOptimization:
 # Driver function for Assignment 1
 if __name__ == "__main__":
     # parameters
+    # easy - 38
     # medium best - 125
-
-    gen = 15
+    # hard best - 799
+    gen = 20
     no_gen = 400
-    q = 175
-    evap = 0.05
+    q = 500
+    evap = 0.175
     stopping_criteria = 10
 
     # construct the optimization objects
