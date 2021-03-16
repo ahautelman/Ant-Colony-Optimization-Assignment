@@ -24,18 +24,23 @@ class Maze:
         self.width = width
         # self.start = start
         # self.end = end
+        self.initialize_to = 1
         self.pheromones = deepcopy(walls)
         self.initialize_pheromones()
+
+    def set_initialization_pheromone(self, phe):
+        self.initialize_to = phe
+
 
     # Initialize pheromones to a start value.
     def initialize_pheromones(self):
         for x in range(self.width):
             for y in range(self.length):
                 if self.walls[x][y] == 1:
-                    north_pheromone = 1 if y - 1 >= 0 and self.walls[x][y-1] == 1 else 0
-                    east_pheromone = 1 if x + 1 < self.width and self.walls[x + 1][y] == 1 else 0
-                    south_pheromone = 1 if y + 1 < self.length and self.walls[x][y + 1] == 1 else 0
-                    west_pheromone = 1 if x - 1 >= 0 and self.walls[x - 1][y] == 1 else 0
+                    north_pheromone = self.initialize_to if y - 1 >= 0 and self.walls[x][y-1] == 1 else 0
+                    east_pheromone = self.initialize_to if x + 1 < self.width and self.walls[x + 1][y] == 1 else 0
+                    south_pheromone = self.initialize_to if y + 1 < self.length and self.walls[x][y + 1] == 1 else 0
+                    west_pheromone = self.initialize_to if x - 1 >= 0 and self.walls[x - 1][y] == 1 else 0
                     self.pheromones[x][y] = SurroundingPheromone(north_pheromone, east_pheromone, south_pheromone,
                                                                  west_pheromone)
                 else:

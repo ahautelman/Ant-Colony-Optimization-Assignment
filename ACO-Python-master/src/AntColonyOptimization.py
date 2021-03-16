@@ -87,14 +87,17 @@ class AntColonyOptimization:
 # Driver function for Assignment 1
 if __name__ == "__main__":
     # parameters
-    gen = 10
+    # medium best - 125
+
+    gen = 15
     no_gen = 400
-    q = 200
-    evap = 0.1
+    q = 175
+    evap = 0.05
     stopping_criteria = 10
 
     # construct the optimization objects
     maze = Maze.create_maze("./../data/medium maze.txt")
+    maze.set_initialization_pheromone(1)
     coord = Coordinate(4, 0)
     spec = PathSpecification.read_coordinates("./../data/medium coordinates.txt")
     aco = AntColonyOptimization(maze, gen, no_gen, q, evap, stopping_criteria)
@@ -110,9 +113,10 @@ if __name__ == "__main__":
 
     plt.plot([i for i in range(no_gen)], aco.avg_per_gens, color='blue')
     plt.plot([i for i in range(no_gen)], aco.best_per_gens, color='red')
-    plt.title("Showing for every generation: average length in blue, shortest length in red")
+    plt.title("Parameters: " + "Q: " + str(q) + ", ants per gen: " + str(gen) + ", evaporation: " + str(evap))
     plt.ylabel('length of path')
     plt.xlabel('generations')
+    plt.legend(["average length", "shortest length"])
     plt.show()
 
     # save solution
