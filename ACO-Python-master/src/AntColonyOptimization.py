@@ -88,8 +88,8 @@ class AntColonyOptimization:
 if __name__ == "__main__":
     # parameters
     gen = 10
-    no_gen = 100
-    q = 1000
+    no_gen = 400
+    q = 200
     evap = 0.1
     stopping_criteria = 10
 
@@ -110,7 +110,7 @@ if __name__ == "__main__":
 
     plt.plot([i for i in range(no_gen)], aco.avg_per_gens, color='blue')
     plt.plot([i for i in range(no_gen)], aco.best_per_gens, color='red')
-    plt.title("Showing for every generation: average length in red, shortest length in blue")
+    plt.title("Showing for every generation: average length in blue, shortest length in red")
     plt.ylabel('length of path')
     plt.xlabel('generations')
     plt.show()
