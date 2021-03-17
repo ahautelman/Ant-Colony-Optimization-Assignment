@@ -46,7 +46,7 @@ class TSPData:
 
         for i in range(number_of_products):
             self.distances.append([])
-            for j in range(number_of_products):
+            for j in range(i, number_of_products):
                 self.distances[i].append(self.product_to_product[i][j].size())
             self.start_distances.append(self.start_to_product[i].size())
             self.end_distances.append(self.product_to_end[i].size())
@@ -118,6 +118,7 @@ class TSPData:
         f.write(string)
 
     # Calculate the optimal routes between all the individual routes
+    # builds a triangular matrix
     # @param maze Maze to calculate optimal routes in
     # @return Optimal routes between all products in 2d array
     def build_distance_matrix(self, aco):
@@ -125,13 +126,11 @@ class TSPData:
         product_to_product = []
         for i in range(number_of_product):
             product_to_product.append([])
-            for j in range(number_of_product):
+            for j in range(i + 1, number_of_product):
                 start = self.product_locations[i]
                 end = self.product_locations[j]
-                if i != j:
-                    product_to_product[i].append(aco.find_shortest_route(PathSpecification(start, end)))
-                else:
-                    product_to_product[i].append([])
+                product_to_product[i].append(aco.find_shortest_route(PathSpecification(start, end)))
+                product_to_product[j].append(aco.find_shortest_route(PathSpecification(start, end)))
         return product_to_product
 
 

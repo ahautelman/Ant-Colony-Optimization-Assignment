@@ -100,15 +100,15 @@ if __name__ == "__main__":
     # medium best - 125
     # hard maze - 797
 
-    gen = 10
+    gen = 20
     no_gen = 400
-    q = 175
+    q = 1523
     evap = 0.15
-    stopping_criteria = 20
+    stopping_criteria = 50
 
     # construct the optimization objects
-    maze = Maze.create_maze("./../data/medium maze.txt")
-    spec = PathSpecification.read_coordinates("./../data/medium coordinates.txt")
+    maze = Maze.create_maze("./../data/hard maze.txt")
+    spec = PathSpecification.read_coordinates("./../data/hard coordinates.txt")
     aco = AntColonyOptimization(maze, gen, no_gen, q, evap, stopping_criteria)
 
     # save starting time
@@ -129,7 +129,7 @@ if __name__ == "__main__":
     plt.show()
 
     # save solution
-    shortest_route.write_to_file("./../data/medium solution.txt")
+    shortest_route.write_to_file("./../data/hard solution.txt")
 
     # print route size
     print("Route size: " + str(shortest_route.size()))
