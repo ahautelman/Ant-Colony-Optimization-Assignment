@@ -49,8 +49,8 @@ class AntColonyOptimization:
     # @return ACO optimized route
     def find_shortest_route(self, path_specification):
         for g in range(self.generations):
-            # if self.generations_since_best > self.stopping_cri:
-            #     break
+            if self.generations_since_best > self.stopping_cri:
+                break
             self.gen_of_ants(path_specification)
         return self.best_route
 
@@ -66,6 +66,7 @@ class AntColonyOptimization:
             routes.append(ant.find_route())
         self.maze.evaporate(self.evaporation)
         self.maze.add_pheromone_routes(routes, self.q, path_specification.start)
+
         shortest_route = find_shortest(routes)
 
         sum = 0
@@ -89,18 +90,18 @@ if __name__ == "__main__":
     # parameters
     # easy - 38
     # medium best - 125
-    # hard best - 799
+    # hard best - 797
     gen = 20
-    no_gen = 400
-    q = 500
-    evap = 0.175
-    stopping_criteria = 10
+    no_gen = 200
+    q = 300
+    evap = 0.15
+    stopping_criteria = 20
 
     # construct the optimization objects
-    maze = Maze.create_maze("./../data/medium maze.txt")
+    maze = Maze.create_maze("./../data/hard maze.txt")
     maze.set_initialization_pheromone(1)
     coord = Coordinate(4, 0)
-    spec = PathSpecification.read_coordinates("./../data/medium coordinates.txt")
+    spec = PathSpecification.read_coordinates("./../data/hard coordinates.txt")
     aco = AntColonyOptimization(maze, gen, no_gen, q, evap, stopping_criteria)
 
     # save starting time
@@ -118,10 +119,11 @@ if __name__ == "__main__":
     plt.ylabel('length of path')
     plt.xlabel('generations')
     plt.legend(["average length", "shortest length"])
+    plt.ylim([120, 325])
     plt.show()
 
     # save solution
-    shortest_route.write_to_file("./../data/medium solution.txt")
+    shortest_route.write_to_file("./../data/hard solution.txt")
 
     # print route size
     print("Route size: " + str(shortest_route.size()))
