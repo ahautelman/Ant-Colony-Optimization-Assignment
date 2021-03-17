@@ -50,6 +50,7 @@ class AntColonyOptimization:
         self.avg_per_gens = []
         self.best_per_gens = []
 
+
     # Loop that starts the shortest path process
     # @param spec Spefication of the route we wish to optimize
     # @return ACO optimized route
@@ -57,7 +58,7 @@ class AntColonyOptimization:
         for g in range(self.generations):
             if self.generations_since_best > self.stopping_cri:
                 break
-            self.gen_of_ants(path_specification)
+            self.gen_of_ants(path_specification, g)
         return self.best_route
 
     # Creates given amount of ants, finds their routes and updates the pheromone matrix
@@ -65,7 +66,7 @@ class AntColonyOptimization:
     def get_route(self, path_specification):
         return Ant(self.maze, path_specification).find_route()
 
-    def gen_of_ants(self, path_specification):
+    def gen_of_ants(self, path_specification, g):
         # routes = []
         with poolcontext(multiprocessing.cpu_count()) as pool:
             routes = pool.map(self.get_route, [path_specification for _ in range(self.ants_per_gen)])
@@ -89,7 +90,7 @@ class AntColonyOptimization:
             sum += i.size()
         self.avg_per_gens.append(sum / len(routes))
         self.best_per_gens.append(shortest_route.size())
-        print("best of the generation:", shortest_route.size(), "current best:", self.best_route_size)
+        print("Generation:", g, "best of the generation:", shortest_route.size(), "current best:", self.best_route_size)
         return routes
 
 
@@ -102,9 +103,9 @@ if __name__ == "__main__":
 
     gen = 20
     no_gen = 400
-    q = 1523
+    q = 2000
     evap = 0.15
-    stopping_criteria = 50
+    stopping_criteria = 20
 
     # construct the optimization objects
     maze = Maze.create_maze("./../data/hard maze.txt")

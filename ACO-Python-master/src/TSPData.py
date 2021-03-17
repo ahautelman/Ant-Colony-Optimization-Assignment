@@ -205,6 +205,7 @@ if __name__ == "__main__":
     aco = AntColonyOptimization(maze, gen, no_gen, q, evap, stop)
         
     #run optimization and write to file
+    print("Running the optimization")
     pd.calculate_routes(aco)
     pd.write_to_file(persist_file)
         
