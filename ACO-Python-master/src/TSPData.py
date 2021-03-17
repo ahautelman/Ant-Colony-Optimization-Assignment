@@ -128,7 +128,10 @@ class TSPData:
             for j in range(number_of_product):
                 start = self.product_locations[i]
                 end = self.product_locations[j]
-                product_to_product[i].append(aco.find_shortest_route(PathSpecification(start, end)))
+                if i != j:
+                    product_to_product[i].append(aco.find_shortest_route(PathSpecification(start, end)))
+                else:
+                    product_to_product[i].append([])
         return product_to_product
 
 
@@ -188,10 +191,11 @@ class TSPData:
 # Assignment 2.a
 if __name__ == "__main__":
     #parameters
-    gen = 1
-    no_gen = 1
-    q = 1000
-    evap = 0.1
+    gen = 20
+    no_gen = 200
+    q = 100
+    evap = 0.15
+    stop = 100
     persist_file = "./../tmp/productMatrixDist"
     tsp_path = "./../data/tsp products.txt"
     coordinates = "./../data/hard coordinates.txt"
@@ -199,7 +203,7 @@ if __name__ == "__main__":
     #construct optimization
     maze = Maze.create_maze("./../data/hard maze.txt")
     pd = TSPData.read_specification(coordinates, tsp_path)
-    aco = AntColonyOptimization(maze, gen, no_gen, q, evap)
+    aco = AntColonyOptimization(maze, gen, no_gen, q, evap, stop)
         
     #run optimization and write to file
     pd.calculate_routes(aco)
