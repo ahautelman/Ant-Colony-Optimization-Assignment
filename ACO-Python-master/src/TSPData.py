@@ -31,9 +31,13 @@ class TSPData:
     # Additionally generate arrays that contain the length of all the routes.
     # @param maze
     def calculate_routes(self, aco):
+        print("calculating route matrix")
         self.product_to_product = self.build_distance_matrix(aco)
+        print("calculating start to products")
         self.start_to_product = self.build_start_to_products(aco)
+        print("calculating end to products")
         self.product_to_end = self.build_products_to_end(aco)
+        print("building distance list")
         self.build_distance_lists()
         return
 
@@ -43,11 +47,14 @@ class TSPData:
         self.distances = []
         self.start_distances = []
         self.end_distances = []
-
         for i in range(number_of_products):
             self.distances.append([])
-            for j in range(i, number_of_products):
-                self.distances[i].append(self.product_to_product[i][j].size())
+            for j in range(number_of_products):
+                print("---", i, j)
+                if i == j:
+                    self.distances[i].append(0)
+                else:
+                    self.distances[i].append(self.product_to_product[i][j].size())
             self.start_distances.append(self.start_to_product[i].size())
             self.end_distances.append(self.product_to_end[i].size())
         return
@@ -124,13 +131,24 @@ class TSPData:
     def build_distance_matrix(self, aco):
         number_of_product = len(self.product_locations)
         product_to_product = []
+
         for i in range(number_of_product):
             product_to_product.append([])
+        print("number of products", number_of_product)
+
+        for i in range(number_of_product):
+            print(i)
+            product_to_product[i].append([])
             for j in range(i + 1, number_of_product):
                 start = self.product_locations[i]
                 end = self.product_locations[j]
+                print("start to end")
                 product_to_product[i].append(aco.find_shortest_route(PathSpecification(start, end)))
-                product_to_product[j].append(aco.find_shortest_route(PathSpecification(start, end)))
+                aco.reset()
+                print("end to start")
+                product_to_product[j].append(aco.find_shortest_route(PathSpecification(end, start)))
+                aco.reset()
+
         return product_to_product
 
 
@@ -191,11 +209,11 @@ class TSPData:
 if __name__ == "__main__":
     #parameters
     gen = 20
-    no_gen = 200
-    q = 100
+    no_gen = 500
+    q = 1500
     evap = 0.15
-    stop = 100
-    persist_file = "./../tmp/productMatrixDist"
+    stop = 1
+    persist_file = "./../data/productMatrixDist.txt"
     tsp_path = "./../data/tsp products.txt"
     coordinates = "./../data/hard coordinates.txt"
         

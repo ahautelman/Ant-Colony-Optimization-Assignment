@@ -50,6 +50,16 @@ class AntColonyOptimization:
         self.avg_per_gens = []
         self.best_per_gens = []
 
+    def reset(self):
+        self.maze.reset()
+        self.best_route = None
+        self.best_route_size = math.inf
+        self.generations_since_best = 0
+        self.avg_per_gens = []
+        self.best_per_gens = []
+
+
+
 
     # Loop that starts the shortest path process
     # @param spec Spefication of the route we wish to optimize
@@ -81,8 +91,14 @@ class AntColonyOptimization:
             self.generations_since_best += 1
         for i in range(4):
             routes.append(shortest_route)
-        self.maze.evaporate(self.evaporation)
-        self.maze.add_pheromone_routes(routes, self.q, path_specification.start)
+        # if shortest_route.size() < self.best_route_size:
+        #     self.best_route = shortest_route
+        #     self.generations_since_best = 0
+        #     self.best_route_size = shortest_route.size()
+        # else:
+        #     self.generations_since_best += 1
+        # self.maze.evaporate(self.evaporation)
+        # self.maze.add_pheromone_routes(routes, self.q, path_specification.start)
 
 
         sum = 0
@@ -105,7 +121,7 @@ if __name__ == "__main__":
     no_gen = 400
     q = 2000
     evap = 0.15
-    stopping_criteria = 20
+    stopping_criteria = 5
 
     # construct the optimization objects
     maze = Maze.create_maze("./../data/hard maze.txt")
