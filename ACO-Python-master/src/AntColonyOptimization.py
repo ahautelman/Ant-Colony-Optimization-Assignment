@@ -22,11 +22,11 @@ def find_shortest(routes):
             shortest = route
     return shortest
 
-# @contextmanager
-# def poolcontext(*args, **kwargs):
-#     pool = multiprocessing.Pool(*args, **kwargs)
-#     yield pool
-#     pool.terminate()
+@contextmanager
+def poolcontext(*args, **kwargs):
+    pool = multiprocessing.Pool(*args, **kwargs)
+    yield pool
+    pool.terminate()
 
 
 class AntColonyOptimization:
@@ -55,8 +55,8 @@ class AntColonyOptimization:
     # @return ACO optimized route
     def find_shortest_route(self, path_specification):
         for g in range(self.generations):
-            # if self.generations_since_best > self.stopping_cri:
-            #     break
+            if self.generations_since_best > self.stopping_cri:
+                break
             self.gen_of_ants(path_specification)
         return self.best_route
 
@@ -66,43 +66,45 @@ class AntColonyOptimization:
         return Ant(self.maze, path_specification).find_route()
 
     def gen_of_ants(self, path_specification):
-        routes = []
-        # with poolcontext(multiprocessing.cpu_count()) as pool:
-        #     routes = pool.map(self.get_route, [path_specification for _ in range(self.ants_per_gen)])
-        for n in range(self.ants_per_gen):
-            ant = Ant(self.maze, path_specification)
-            routes.append(ant.find_route())
-        self.maze.evaporate(self.evaporation)
-        self.maze.add_pheromone_routes(routes, self.q, path_specification.start)
+        # routes = []
+        with poolcontext(multiprocessing.cpu_count()) as pool:
+            routes = pool.map(self.get_route, [path_specification for _ in range(self.ants_per_gen)])
         shortest_route = find_shortest(routes)
-
-        sum = 0
-        for i in routes:
-            sum += i.size()
-
-        self.avg_per_gens.append(sum / len(routes))
-        self.best_per_gens.append(shortest_route.size())
         if shortest_route.size() < self.best_route_size:
             self.best_route = shortest_route
             self.generations_since_best = 0
             self.best_route_size = shortest_route.size()
+            for i in range(10):
+                routes.append(shortest_route)
         else:
             self.generations_since_best += 1
+        for i in range(4):
+            routes.append(shortest_route)
+        self.maze.evaporate(self.evaporation)
+        self.maze.add_pheromone_routes(routes, self.q, path_specification.start)
+
+
+        sum = 0
+        for i in routes:
+            sum += i.size()
+        self.avg_per_gens.append(sum / len(routes))
+        self.best_per_gens.append(shortest_route.size())
         print("best of the generation:", shortest_route.size(), "current best:", self.best_route_size)
         return routes
 
 
 # Driver function for Assignment 1
-# Driver function for Assignment 1
 if __name__ == "__main__":
     # parameters
+    # easy best - 38
     # medium best - 125
+    # hard maze - 797
 
-    gen = 15
-    no_gen = 100
+    gen = 10
+    no_gen = 400
     q = 500
-    evap = 0.05
-    stopping_criteria = 100
+    evap = 0.1
+    stopping_criteria = 30
 
     # construct the optimization objects
     maze = Maze.create_maze("./../data/hard maze.txt")
@@ -118,8 +120,8 @@ if __name__ == "__main__":
     # print time taken
     print("Time taken: " + str((int(round(time.time() * 1000)) - start_time) / 1000.0))
 
-    plt.plot([i for i in range(no_gen)], aco.avg_per_gens, color='blue')
-    plt.plot([i for i in range(no_gen)], aco.best_per_gens, color='red')
+    plt.plot([i for i in range(len(aco.avg_per_gens))], aco.avg_per_gens, color='blue')
+    plt.plot([i for i in range(len(aco.best_per_gens))], aco.best_per_gens, color='red')
     plt.title("Parameters: " + "Q: " + str(q) + ", ants per gen: " + str(gen) + ", evaporation: " + str(evap))
     plt.ylabel('length of path')
     plt.xlabel('generations')
