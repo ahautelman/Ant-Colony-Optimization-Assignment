@@ -51,7 +51,7 @@ class AntColonyOptimization:
         for g in range(self.generations):
             if self.generations_since_best > self.stopping_cri:
                 break
-            self.gen_of_ants(path_specification)
+            self.gen_of_ants(path_specification, g)
         return self.best_route
 
     # Creates given amount of ants, finds their routes and updates the pheromone matrix
@@ -59,7 +59,7 @@ class AntColonyOptimization:
     def get_route(self, path_specification):
         return Ant(self.maze, path_specification).find_route()
 
-    def gen_of_ants(self, path_specification):
+    def gen_of_ants(self, path_specification, g):
         routes = []
         for n in range(self.ants_per_gen):
             ant = Ant(self.maze, path_specification)
@@ -81,7 +81,7 @@ class AntColonyOptimization:
             self.best_route_size = shortest_route.size()
         else:
             self.generations_since_best += 1
-        print("best of the generation:", shortest_route.size(), "current best:", self.best_route_size)
+        print("generation:", g, "best of the generation:", shortest_route.size(), "current best:", self.best_route_size)
         return routes
 
 
@@ -92,16 +92,16 @@ if __name__ == "__main__":
     # medium best - 125
     # hard best - 797
     gen = 20
-    no_gen = 200
-    q = 500
-    evap = 0.1
+    no_gen = 700
+    q = 1000
+    evap = 0.3
     stopping_criteria = 50
 
     # construct the optimization objects
-    maze = Maze.create_maze("./../data/medium maze.txt")
+    maze = Maze.create_maze("./../data/hard maze.txt")
     maze.set_initialization_pheromone(1)
     coord = Coordinate(4, 0)
-    spec = PathSpecification.read_coordinates("./../data/medium coordinates.txt")
+    spec = PathSpecification.read_coordinates("./../data/hard coordinates.txt")
     aco = AntColonyOptimization(maze, gen, no_gen, q, evap, stopping_criteria)
 
     # save starting time
@@ -123,7 +123,7 @@ if __name__ == "__main__":
     plt.show()
 
     # save solution
-    shortest_route.write_to_file("./../data/medium solution.txt")
+    shortest_route.write_to_file("./../data/hard solution.txt")
 
     # print route size
     print("Route size: " + str(shortest_route.size()))
