@@ -22,11 +22,11 @@ def find_shortest(routes):
             shortest = route
     return shortest
 
-# @contextmanager
-# def poolcontext(*args, **kwargs):
-#     pool = multiprocessing.Pool(*args, **kwargs)
-#     yield pool
-#     pool.terminate()
+@contextmanager
+def poolcontext(*args, **kwargs):
+    pool = multiprocessing.Pool(*args, **kwargs)
+    yield pool
+    pool.terminate()
 
 
 class AntColonyOptimization:
@@ -66,12 +66,12 @@ class AntColonyOptimization:
         return Ant(self.maze, path_specification).find_route()
 
     def gen_of_ants(self, path_specification):
-        routes = []
-        # with poolcontext(multiprocessing.cpu_count()) as pool:
-        #     routes = pool.map(self.get_route, [path_specification for _ in range(self.ants_per_gen)])
-        for n in range(self.ants_per_gen):
-            ant = Ant(self.maze, path_specification)
-            routes.append(ant.find_route())
+        # routes = []
+        with poolcontext(multiprocessing.cpu_count()) as pool:
+            routes = pool.map(self.get_route, [path_specification for _ in range(self.ants_per_gen)])
+        # for n in range(self.ants_per_gen):
+        #     ant = Ant(self.maze, path_specification)
+        #     routes.append(ant.find_route())
         self.maze.evaporate(self.evaporation)
         self.maze.add_pheromone_routes(routes, self.q, path_specification.start)
         shortest_route = find_shortest(routes)
