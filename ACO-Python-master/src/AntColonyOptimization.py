@@ -97,8 +97,8 @@ class AntColonyOptimization:
         #     self.best_route_size = shortest_route.size()
         # else:
         #     self.generations_since_best += 1
-        # self.maze.evaporate(self.evaporation)
-        # self.maze.add_pheromone_routes(routes, self.q, path_specification.start)
+        self.maze.evaporate(self.evaporation)
+        self.maze.add_pheromone_routes(routes, self.q, path_specification.start)
 
 
         sum = 0
