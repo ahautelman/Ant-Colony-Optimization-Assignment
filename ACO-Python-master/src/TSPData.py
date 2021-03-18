@@ -136,7 +136,7 @@ class TSPData:
             product_to_product.append([])
         print("number of products", number_of_product)
 
-        for i in range(number_of_product):
+        for i in range(number_of_product-1):
             print(i)
             product_to_product[i].append([])
             for j in range(i + 1, number_of_product):
@@ -210,9 +210,9 @@ if __name__ == "__main__":
     #parameters
     gen = 20
     no_gen = 500
-    q = 1500
+    q = 300
     evap = 0.15
-    stop = 1
+    stop = 20
     persist_file = "./../data/productMatrixDist.txt"
     tsp_path = "./../data/tsp products.txt"
     coordinates = "./../data/hard coordinates.txt"

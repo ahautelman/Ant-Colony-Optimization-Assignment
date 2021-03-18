@@ -10,9 +10,11 @@ class GeneticAlgorithm:
     # Constructs a new 'genetic algorithm' object.
     # @param generations the amount of generations.
     # @param popSize the population size.
-    def __init__(self, generations, pop_size):
+    def __init__(self, generations, pop_size, c=1000, alpha=1.1):
         self.generations = generations
         self.pop_size = pop_size
+        self.c = c
+        self.alpha = alpha
 
      # Knuth-Yates shuffle, reordering a array randomly
      # @param chromosome array to shuffle.
@@ -31,6 +33,13 @@ class GeneticAlgorithm:
     def solve_tsp(self, tsp_data):
         list = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 16, 17]
         return list
+
+    def loss(self, chromosome, tsp_data):
+        loss = 0
+        for i in range(len(chromosome) - 1):
+            loss += len(tsp_data.product_to_product[i][i+1])
+        return self.c / (loss**self.alpha)
+
 
 # Assignment 2.b
 if __name__ == "__main__":

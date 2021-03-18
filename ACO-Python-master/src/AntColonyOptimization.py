@@ -91,21 +91,15 @@ class AntColonyOptimization:
             self.generations_since_best += 1
         for i in range(4):
             routes.append(shortest_route)
-        # if shortest_route.size() < self.best_route_size:
-        #     self.best_route = shortest_route
-        #     self.generations_since_best = 0
-        #     self.best_route_size = shortest_route.size()
-        # else:
-        #     self.generations_since_best += 1
-        # self.maze.evaporate(self.evaporation)
-        # self.maze.add_pheromone_routes(routes, self.q, path_specification.start)
+        self.maze.evaporate(self.evaporation)
+        self.maze.add_pheromone_routes(routes, self.q, path_specification.start)
 
 
-        sum = 0
-        for i in routes:
-            sum += i.size()
-        self.avg_per_gens.append(sum / len(routes))
-        self.best_per_gens.append(shortest_route.size())
+        # sum = 0
+        # for i in routes:
+        #     sum += i.size()
+        # self.avg_per_gens.append(sum / len(routes))
+        # self.best_per_gens.append(shortest_route.size())
         print("Generation:", g, "best of the generation:", shortest_route.size(), "current best:", self.best_route_size)
         return routes
 
@@ -119,9 +113,9 @@ if __name__ == "__main__":
 
     gen = 20
     no_gen = 400
-    q = 2000
+    q = 500
     evap = 0.15
-    stopping_criteria = 5
+    stopping_criteria = 20
 
     # construct the optimization objects
     maze = Maze.create_maze("./../data/hard maze.txt")
@@ -137,13 +131,13 @@ if __name__ == "__main__":
     # print time taken
     print("Time taken: " + str((int(round(time.time() * 1000)) - start_time) / 1000.0))
 
-    plt.plot([i for i in range(len(aco.avg_per_gens))], aco.avg_per_gens, color='blue')
-    plt.plot([i for i in range(len(aco.best_per_gens))], aco.best_per_gens, color='red')
-    plt.title("Parameters: " + "Q: " + str(q) + ", ants per gen: " + str(gen) + ", evaporation: " + str(evap))
-    plt.ylabel('length of path')
-    plt.xlabel('generations')
-    plt.legend(["average length", "shortest length"])
-    plt.show()
+    # plt.plot([i for i in range(len(aco.avg_per_gens))], aco.avg_per_gens, color='blue')
+    # plt.plot([i for i in range(len(aco.best_per_gens))], aco.best_per_gens, color='red')
+    # plt.title("Parameters: " + "Q: " + str(q) + ", ants per gen: " + str(gen) + ", evaporation: " + str(evap))
+    # plt.ylabel('length of path')
+    # plt.xlabel('generations')
+    # plt.legend(["average length", "shortest length"])
+    # plt.show()
 
     # save solution
     shortest_route.write_to_file("./../data/hard solution.txt")
