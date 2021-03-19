@@ -85,7 +85,7 @@ class AntColonyOptimization:
             self.best_route = shortest_route
             self.generations_since_best = 0
             self.best_route_size = shortest_route.size()
-            for i in range(5):
+            for i in range(10):
                 routes.append(shortest_route)
         else:
             self.generations_since_best += 1
@@ -116,8 +116,8 @@ if __name__ == "__main__":
     stopping_criteria = 20
 
     # construct the optimization objects
-    maze = Maze.create_maze("./../data/hard maze.txt")
-    spec = PathSpecification.read_coordinates("./../data/hard coordinates.txt")
+    maze = Maze.create_maze("./../data/easy maze.txt")
+    spec = PathSpecification.read_coordinates("./../data/easy coordinates.txt")
     aco = AntColonyOptimization(maze, gen, no_gen, q, evap, stopping_criteria)
 
     # save starting time
@@ -138,7 +138,7 @@ if __name__ == "__main__":
     # plt.show()
 
     # save solution
-    shortest_route.write_to_file("./../data/hard solution.txt")
+    shortest_route.write_to_file("./../data/easy solution.txt")
 
     # print route size
     print("Route size: " + str(shortest_route.size()))

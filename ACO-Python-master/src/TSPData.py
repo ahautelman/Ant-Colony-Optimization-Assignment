@@ -229,3 +229,4 @@ if __name__ == "__main__":
 
     #read from file and print
     pd2 = TSPData.read_from_file(persist_file)
+    print(pd == pd2)
