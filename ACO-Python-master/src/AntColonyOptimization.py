@@ -1,6 +1,6 @@
 import os, sys
+
 sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
-import matplotlib.pyplot as plt
 import time
 import math
 import multiprocessing
@@ -8,11 +8,10 @@ from contextlib import contextmanager
 from src.Maze import Maze
 from src.PathSpecification import PathSpecification
 from src.Ant import Ant
-from src.Coordinate import Coordinate
 
 
-# Class representing the first assignment. Finds shortest path between two points in a maze according to a specific
-# path specification.
+# Method that returns the shortest route from a list of routes.
+# @param route list of Route object.
 def find_shortest(routes):
     if not routes:
         raise BrokenPipeError("no routes found!")
@@ -22,13 +21,19 @@ def find_shortest(routes):
             shortest = route
     return shortest
 
+
 @contextmanager
 def poolcontext(*args, **kwargs):
+    """
+    Method allows running functions in parallel.
+    """
     pool = multiprocessing.Pool(*args, **kwargs)
     yield pool
     pool.terminate()
 
 
+# Class representing the first assignment. Finds shortest path between two points in a maze according to a specific
+# path specification.
 class AntColonyOptimization:
 
     # Constructs a new optimization object using ants.
@@ -58,41 +63,36 @@ class AntColonyOptimization:
         self.avg_per_gens = []
         self.best_per_gens = []
 
-
-
-
     # Loop that starts the shortest path process
     # @param spec Spefication of the route we wish to optimize
     # @return ACO optimized route
     def find_shortest_route(self, path_specification):
         for g in range(self.generations):
-            if self.generations_since_best > self.stopping_cri:
+            if self.generations_since_best > self.stopping_cri:     # stopping criterion.
                 break
             self.gen_of_ants(path_specification)
         return self.best_route
-
-    # Creates given amount of ants, finds their routes and updates the pheromone matrix
 
     def get_route(self, path_specification):
         return Ant(self.maze, path_specification).find_route()
 
     def gen_of_ants(self, path_specification):
-        # routes = []
         with poolcontext(multiprocessing.cpu_count()) as pool:
-            routes = pool.map(self.get_route, [path_specification for _ in range(self.ants_per_gen)])
+            routes = pool.map(self.get_route, [path_specification for _ in range(self.ants_per_gen)])       # get list of routes for ants_per_gen ants.
         shortest_route = find_shortest(routes)
-        if shortest_route.size() < self.best_route_size:
-            self.best_route = shortest_route
-            self.generations_since_best = 0
+        if shortest_route.size() < self.best_route_size:    # found route is the new global best
+            self.best_route = shortest_route        # update global best
             self.best_route_size = shortest_route.size()
+            self.generations_since_best = 0
             for i in range(10):
-                routes.append(shortest_route)
+                routes.append(shortest_route)       # add 10 times the normal amount of pheromone
         else:
             self.generations_since_best += 1
         for i in range(4):
-            routes.append(shortest_route)
-        self.maze.evaporate(self.evaporation)
-        self.maze.add_pheromone_routes(routes, self.q, path_specification.start)
+            routes.append(shortest_route)           # add 5 times the normal amount of pheromone
+                                                    # for the best route in generation.
+        self.maze.evaporate(self.evaporation)       # evaporate pheromone
+        self.maze.add_pheromone_routes(routes, self.q, path_specification.start)        # add pheromone for current generation.
         sum = 0
         for i in routes:
             sum += i.size()
