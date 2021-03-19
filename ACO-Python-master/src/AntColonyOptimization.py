@@ -111,13 +111,13 @@ if __name__ == "__main__":
 
     gen = 20
     no_gen = 500
-    q = 300
-    evap = 0.15
+    q = 500
+    evap = 0.6
     stopping_criteria = 20
 
     # construct the optimization objects
-    maze = Maze.create_maze("./../data/easy maze.txt")
-    spec = PathSpecification.read_coordinates("./../data/easy coordinates.txt")
+    maze = Maze.create_maze("./../data/hard maze.txt")
+    spec = PathSpecification.read_coordinates("./../data/hard coordinates.txt")
     aco = AntColonyOptimization(maze, gen, no_gen, q, evap, stopping_criteria)
 
     # save starting time
@@ -129,16 +129,8 @@ if __name__ == "__main__":
     # print time taken
     print("Time taken: " + str((int(round(time.time() * 1000)) - start_time) / 1000.0))
 
-    # plt.plot([i for i in range(len(aco.avg_per_gens))], aco.avg_per_gens, color='blue')
-    # plt.plot([i for i in range(len(aco.best_per_gens))], aco.best_per_gens, color='red')
-    # plt.title("Parameters: " + "Q: " + str(q) + ", ants per gen: " + str(gen) + ", evaporation: " + str(evap))
-    # plt.ylabel('length of path')
-    # plt.xlabel('generations')
-    # plt.legend(["average length", "shortest length"])
-    # plt.show()
-
     # save solution
-    shortest_route.write_to_file("./../data/easy solution.txt")
+    shortest_route.write_to_file("./../data/hard solution.txt")
 
     # print route size
     print("Route size: " + str(shortest_route.size()))

@@ -119,8 +119,6 @@ class GeneticAlgorithm:
         product_size = 17
         child_1 = []
         child_2 = []
-        sequence_1 = []
-        sequence_2 = []
         keep_1 = []
         keep_2 = []
 
@@ -181,7 +179,7 @@ class GeneticAlgorithm:
             picked_parents = self.select_parents(chromosomes, fitness, 2)
 
             # create a new population
-            while len(new_chromosomes) < self.pop_size:
+            while len(new_chromosomes) < 3 * self.pop_size:
 
                 # Randomly select 2 parents, apply crossover
                 parent1 = self.select_one(picked_parents, fitness)
@@ -193,7 +191,7 @@ class GeneticAlgorithm:
                 new_chromosomes.extend(mutant_children)
 
             # create a new population
-            chromosomes.extend(new_chromosomes)
+            chromosomes = new_chromosomes
             chromosomes = self.find_best_chromosomes(chromosomes, tsp_data)
             fitness = []
             
@@ -241,8 +239,8 @@ class GeneticAlgorithm:
 if __name__ == "__main__":
     # parameters
     population_size = 500
-    gens = 200
-    cross_distance = 5
+    gens = 100
+    cross_distance = 3
     persistFile = "./../data/productMatrixDist.txt"
 
     # setup optimization
