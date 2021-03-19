@@ -216,17 +216,16 @@ if __name__ == "__main__":
     persist_file = "./../data/productMatrixDist.txt"
     tsp_path = "./../data/tsp products.txt"
     coordinates = "./../data/hard coordinates.txt"
-        
+
     #construct optimization
     maze = Maze.create_maze("./../data/hard maze.txt")
     pd = TSPData.read_specification(coordinates, tsp_path)
     aco = AntColonyOptimization(maze, gen, no_gen, q, evap, stop)
-        
+
     #run optimization and write to file
     print("Running the optimization")
     pd.calculate_routes(aco)
     pd.write_to_file(persist_file)
-        
+
     #read from file and print
     pd2 = TSPData.read_from_file(persist_file)
-    print(pd == pd2)
