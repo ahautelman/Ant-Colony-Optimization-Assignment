@@ -29,7 +29,9 @@ def roulette_wheel(probabilities, rand):
     return Direction.south
 
 
-# Class that represents the ants functionality.
+# Method return the sum of the pheromones in the given directions.
+# @param surrounding_pheromones SurroundingPheromones object.
+# @param directions a list of Direction objects.
 def sum_surrounding_pheromones(surrounding_pheromones, directions):
     pheromones_sum = 0
     for direction in directions:
@@ -37,6 +39,7 @@ def sum_surrounding_pheromones(surrounding_pheromones, directions):
     return pheromones_sum
 
 
+# Class that represents the ants functionality.
 class Ant:  # TODO: clean up this spaghetti code
 
     # Constructor for ant taking a Maze and PathSpecification.
@@ -73,17 +76,16 @@ class Ant:  # TODO: clean up this spaghetti code
     # @param surrounding_pheromone SurroundingPheromone containing the pheromone information around a certain point in the maze.
     def pick_direction(self, route, surrounding_pheromone):
         if self.is_crossroad(surrounding_pheromone):
-            self.crossroads.append(Crossroad(self.current_position, 0))  # save node in crossroads stack
+            self.crossroads.append(Crossroad(self.current_position, 0))   # save node in crossroads stack
         directions = self.get_possible_directions(surrounding_pheromone)  # list containing possible directions.
-        if not directions:  # ant encountered a dead end.
+        if not directions:           # ant encountered a dead end.
             if not self.crossroads:  # stack of crossroads is empty
-                print(self.current_position)
                 raise ValueError("Encountered dead end in maze!")
             crossroad = self.crossroads.pop()  # get last encountered crossroad
             self.current_position = crossroad.get_position()  # update position to that node
             for i in range(crossroad.get_steps()):
                 route.pop()  # remove all picked directions up to the crossroad.
-            self.pick_direction(route, self.maze.get_surrounding_pheromone(self.current_position))
+            self.pick_direction(route, self.maze.get_surrounding_pheromone(self.current_position))      # call pick_direction until ant gets out of dead-ends
             return
         probabilities = [0, 0, 0, 0]  # list of probabilities for picking each direction.
         pheromone_sum = sum_surrounding_pheromones(surrounding_pheromone,
