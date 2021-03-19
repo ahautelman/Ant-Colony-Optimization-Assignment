@@ -13,7 +13,7 @@ class GeneticAlgorithm:
     # Constructs a new 'genetic algorithm' object.
     # @param generations the amount of generations.
     # @param popSize the population size.
-    def __init__(self, generations, pop_size, min_distance_crossover, mutation_chance=0.1, c=1000, alpha=1.1,
+    def __init__(self, generations, pop_size, min_distance_crossover, mutation_chance=0.1, c=10, alpha=1.2,
                  fucking_prob=0.8):
         self.generations = generations
         self.pop_size = pop_size
@@ -40,7 +40,7 @@ class GeneticAlgorithm:
         for i in range(len(chromosome) - 1):
             number += tsp_data.product_to_product[chromosome[i]][chromosome[i + 1]].size()
         number += tsp_data.end_distances[chromosome[len(chromosome) - 1]]
-        return self.c / (number ** self.alpha)
+        return (self.c / number) ** self.alpha
 
     def calc_probabilites(self, fitness):
         probabilities = []
@@ -49,7 +49,7 @@ class GeneticAlgorithm:
             total_fit = total_fit + fitness[i]
         for i in range(len(fitness)):
             probabilities.append(fitness[i] / total_fit)
-        print(sum(probabilities))
+        # print(sum(probabilities))
         return probabilities
 
     def pick_parents(self, chromosomes, fitness):
@@ -100,8 +100,8 @@ class GeneticAlgorithm:
         return mutants
 
     def cross_over(self, parent1, parent2):
-        print("Parent 1", parent1)
-        print("Parent 2", parent2)
+        # print("Parent 1", parent1)
+        # print("Parent 2", parent2)
         rand = random.uniform(0, 1)
 
         if rand > self.fucking_prob:
@@ -140,10 +140,13 @@ class GeneticAlgorithm:
         for j in range(cross_point_1 + 1, len(sequence_2)):
             child_1.append(sequence_1[j])
             child_2.append(sequence_2[j])
-        print("Child 1", child_1)
-        print("Child 2", child_2)
+        # print("Child 1", child_1)
+        # print("Child 2", child_2)
 
         return [child_1, child_2]
+
+    def real_shuffle(self, chromosome):
+        random.shuffle(chromosome)
 
     # This method should solve the TSP.
     # @param pd the TSP data.
@@ -155,17 +158,18 @@ class GeneticAlgorithm:
         # print("creating initial population")
         while len(chromosomes) < self.pop_size:
             list = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17]
-            shuffled = self.shuffle(list)
-            if not chromosomes.__contains__(shuffled):
-                chromosomes.append(shuffled)
+            random.shuffle(list)
+            if not chromosomes.__contains__(list):
+                chromosomes.append(list)
+                print("Started from the bottom now we here", len(chromosomes))
 
         # print(chromosomes)
 
         # Evaluate fitness of each chromosome +
-        for i in range(len(chromosomes)):
-            fitness.append(self.fitness(chromosomes[i], tsp_data))
 
         for g in range(self.generations):
+            for i in range(len(chromosomes)):
+                fitness.append(self.fitness(chromosomes[i], tsp_data))
             print("-Generation", g)
             # Choose p/2 parents +
             picked_parents = self.pick_parents(chromosomes, fitness)
@@ -174,20 +178,16 @@ class GeneticAlgorithm:
             new_chromosomes = []
             # print(len(picked_parents))
             # while len(mated_parents) < len(picked_parents):
-            while len(new_chromosomes) < 5 * self.pop_size:
+            while len(new_chromosomes) < self.pop_size:
                 # print("-- number of fuckings", len(mated_parents))
-                print("--- number of children", len(new_chromosomes))
+                # print("--- number of children", len(new_chromosomes))
                 # Randomly select 2 parents, apply crossover +
-                parent1 = picked_parents[random.randint(0, len(picked_parents) - 1)]
-                parent2 = picked_parents[random.randint(0, len(picked_parents) - 1)]
+                # parent1 = picked_parents[random.randint(0, len(picked_parents) - 1)]
+                parent1 = self.select_one(picked_parents, fitness)
+                parent2 = self.select_one(picked_parents, fitness)
+                # parent2 = picked_parents[random.randint(0, len(picked_parents) - 1)]
                 # while parent1 == parent2:
                 #     parent2 = picked_parents[random.randint(0, len(picked_parents) - 1)]
-                # if not mated_parents.__contains__(parent1):
-                #     mated_parents.append(parent1)
-                #     print("added something", len(mated_parents))
-                # if not mated_parents.__contains__(parent2):
-                #     mated_parents.append(parent2)
-                #     print("added something", len(mated_parents))
                 children = self.cross_over(parent1, parent2)
                 # Apply mutations +
                 mutant_children = self.mutate(children)
@@ -195,13 +195,17 @@ class GeneticAlgorithm:
                 # Repeat 4-5 until all parents are selected +
 
             # Replace old population with new chromosomes +
-            chromosomes = self.find_best_chromosomes(new_chromosomes, tsp_data)
+            # chromosomes = self.find_best_chromosomes(new_chromosomes, tsp_data)
+            chromosomes.extend(new_chromosomes)
+            chromosomes = self.find_best_chromosomes(chromosomes, tsp_data)
+
+            print("best individual", self.fitness(self.find_best_chromosome(chromosomes, tsp_data), tsp_data))
             # Evaluate fitness of each chromosome +
-            new_fitness = []
+            fitness = []
+
             # print("CHROMOSOMES", chromosomes)
-            for i in range(len(chromosomes)):
-                new_fitness.append(self.fitness(chromosomes[i], tsp_data))
-            fitness = new_fitness
+            # for i in range(len(chromosomes)):
+            #     new_fitness.append(self.fitness(chromosomes[i], tsp_data))
             # print(fitness)
             # Terminate if number of generations reached limit, otherwise go to step 3 +
         return self.find_best_chromosome(chromosomes, tsp_data)
@@ -221,7 +225,7 @@ class GeneticAlgorithm:
 
         fitnesses_and_chromosomes = list(zip(fitnesses, new_chromosomes))
         fitnesses_and_chromosomes.sort(key=lambda x: x[0], reverse=True)
-        print("length of new chromies:", len(new_chromosomes))
+        # print("length of new chromies:", len(new_chromosomes))
         best_chromosomes = []
         for i in range(self.pop_size):
             best_chromosomes.append(fitnesses_and_chromosomes[i][1])
@@ -231,9 +235,9 @@ class GeneticAlgorithm:
 # Assignment 2.b
 if __name__ == "__main__":
     # parameters
-    population_size = 500
-    generations = 100
-    min_distance_crossover = 3
+    population_size = 1000
+    generations = 200
+    min_distance_crossover = 5
     persistFile = "./../data/productMatrixDist.txt"
 
     # setup optimization

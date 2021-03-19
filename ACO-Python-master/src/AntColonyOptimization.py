@@ -68,7 +68,7 @@ class AntColonyOptimization:
         for g in range(self.generations):
             if self.generations_since_best > self.stopping_cri:
                 break
-            self.gen_of_ants(path_specification, g)
+            self.gen_of_ants(path_specification)
         return self.best_route
 
     # Creates given amount of ants, finds their routes and updates the pheromone matrix
@@ -76,7 +76,7 @@ class AntColonyOptimization:
     def get_route(self, path_specification):
         return Ant(self.maze, path_specification).find_route()
 
-    def gen_of_ants(self, path_specification, g):
+    def gen_of_ants(self, path_specification):
         # routes = []
         with poolcontext(multiprocessing.cpu_count()) as pool:
             routes = pool.map(self.get_route, [path_specification for _ in range(self.ants_per_gen)])
@@ -85,7 +85,7 @@ class AntColonyOptimization:
             self.best_route = shortest_route
             self.generations_since_best = 0
             self.best_route_size = shortest_route.size()
-            for i in range(10):
+            for i in range(5):
                 routes.append(shortest_route)
         else:
             self.generations_since_best += 1
@@ -93,7 +93,12 @@ class AntColonyOptimization:
             routes.append(shortest_route)
         self.maze.evaporate(self.evaporation)
         self.maze.add_pheromone_routes(routes, self.q, path_specification.start)
-        print("Generation:", g, "best of the generation:", shortest_route.size(), "current best:", self.best_route_size)
+        sum = 0
+        for i in routes:
+            sum += i.size()
+        self.avg_per_gens.append(sum / len(routes))
+        self.best_per_gens.append(shortest_route.size())
+        print("best of the generation:", shortest_route.size(), "current best:", self.best_route_size)
         return routes
 
 
@@ -105,8 +110,8 @@ if __name__ == "__main__":
     # hard maze - 797
 
     gen = 20
-    no_gen = 400
-    q = 500
+    no_gen = 500
+    q = 300
     evap = 0.15
     stopping_criteria = 20
 
