@@ -17,7 +17,7 @@ class GeneticAlgorithm:
     # @param mutation_chance probability of a chromosome mutation
     # @param c constant for loss function
     # @param a route length penalty in loss function
-    def __init__(self, generations, pop_size, min_distance_crossover, mutation_chance=0.1, c=10, alpha=1.2,
+    def __init__(self, generations, pop_size, min_distance_crossover, mutation_chance=0.1, c=1000, alpha=1.2,
                  reproducing_prob=0.8):
         self.generations = generations
         self.pop_size = pop_size
@@ -39,7 +39,7 @@ class GeneticAlgorithm:
         for i in range(len(chromosome) - 1):
             fitness += tsp_data.product_to_product[chromosome[i]][chromosome[i + 1]].size()
         fitness += tsp_data.end_distances[chromosome[len(chromosome) - 1]]
-        return (self.c / fitness) ** self.alpha
+        return self.c / (fitness ** self.alpha)
 
     def select_parents(self, chromosomes, fitness, population_factor):
         """
@@ -50,7 +50,7 @@ class GeneticAlgorithm:
         :return: a set of selected parents
         """
         parents = []
-        chromosomes = copy.deepcopy(chromosomes)
+        # chromosomes = chromosomes
 
         for i in range(int(self.pop_size / population_factor)):
             selected = self.select_one(chromosomes, fitness)
@@ -79,8 +79,6 @@ class GeneticAlgorithm:
             current += fitness[i]
             if current >= roulette:
                 return population[i]
-
-        return population[random.randint(0, len(population) - 1)]
 
     def mutate(self, children):
         """
@@ -121,6 +119,8 @@ class GeneticAlgorithm:
         product_size = 17
         child_1 = []
         child_2 = []
+        sequence_1 = []
+        sequence_2 = []
         keep_1 = []
         keep_2 = []
 
@@ -161,7 +161,6 @@ class GeneticAlgorithm:
         """
         chromosomes = []
         fitness = []
-        new_chromosomes = []
 
         # Create initial population of n chromosomes
         while len(chromosomes) < self.pop_size:
@@ -172,6 +171,7 @@ class GeneticAlgorithm:
 
         for g in range(self.generations):
             print("-Generation", g)
+            new_chromosomes = []
 
             # Evaluate fitness of each chromosome
             for i in range(len(chromosomes)):
@@ -202,6 +202,11 @@ class GeneticAlgorithm:
         return self.find_best_chromosome(chromosomes, tsp_data)
 
     def find_best_chromosome(self, chromosomes, tsp_data):
+        """
+        finds a chromosome with the highest fitness
+        :return chromosome
+        """
+
         best = chromosomes[0]
         best_fitness = self.fitness(best, tsp_data)
 
@@ -212,23 +217,32 @@ class GeneticAlgorithm:
         return best
 
     def find_best_chromosomes(self, new_chromosomes, tsp_data):
-        fitnesses = [self.fitness(x, tsp_data) for x in new_chromosomes]
+        """
+        find the best chromosomes in the population
 
-        fitnesses_and_chromosomes = list(zip(fitnesses, new_chromosomes))
-        fitnesses_and_chromosomes.sort(key=lambda x: x[0], reverse=True)
-        # print("length of new chromies:", len(new_chromosomes))
+        :param new_chromosomes: a list of chromosomes
+        :param tsp_data: route data
+        :return: an array of size self.pop_size of ebst chromosomes
+        """
+
+        fitness = [self.fitness(x, tsp_data) for x in new_chromosomes]
+
+        fitness_and_chromosomes = list(zip(fitness, new_chromosomes))
+        fitness_and_chromosomes.sort(key=lambda x: x[0], reverse=True)
         best_chromosomes = []
+
         for i in range(self.pop_size):
-            best_chromosomes.append(fitnesses_and_chromosomes[i][1])
+            best_chromosomes.append(fitness_and_chromosomes[i][1])
+
         return best_chromosomes
 
 
 # Assignment 2.b
 if __name__ == "__main__":
     # parameters
-    population_size = 10
+    population_size = 500
     gens = 200
-    cross_distance = 3
+    cross_distance = 5
     persistFile = "./../data/productMatrixDist.txt"
 
     # setup optimization
