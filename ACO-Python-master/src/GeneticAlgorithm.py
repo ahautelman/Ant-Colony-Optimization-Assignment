@@ -13,80 +13,82 @@ class GeneticAlgorithm:
     # Constructs a new 'genetic algorithm' object.
     # @param generations the amount of generations.
     # @param popSize the population size.
-    def __init__(self, generations, pop_size, min_distance_crossover, mutation_chance=0.1, c=10, alpha=1.2,
-                 fucking_prob=0.8):
+    # @param min_distance_crossover min distance in between cuts for crossover.
+    # @param mutation_chance probability of a chromosome mutation
+    # @param c constant for loss function
+    # @param a route length penalty in loss function
+    def __init__(self, generations, pop_size, min_distance_crossover, mutation_chance=0.1, c=1000, alpha=1.2,
+                 reproducing_prob=0.8):
         self.generations = generations
         self.pop_size = pop_size
         self.mutation_chance = mutation_chance
         self.min_distance_crossover = min_distance_crossover
         self.c = c
         self.alpha = alpha
-        self.fucking_prob = fucking_prob
-
-    # Knuth-Yates shuffle, reordering a array randomly
-    # @param chromosome array to shuffle.
-    def shuffle(self, chromosome):
-        n = len(chromosome)
-        for i in range(n):
-            r = i + int(random.uniform(0, 1) * (n - i))
-            swap = chromosome[r]
-            chromosome[r] = chromosome[i]
-            chromosome[i] = swap
-        return chromosome
+        self.reproducing_prob = reproducing_prob
 
     def fitness(self, chromosome, tsp_data):
-        number = tsp_data.start_distances[chromosome[0]]
-        # 2, 4, 6, 1
+        """
+        calculates the fitness of one chromosome
+        :param chromosome: chromosome for which the fitness is calculated
+        :param tsp_data: route data
+        :return: fitness of :param chromosome
+        """
+        fitness = tsp_data.start_distances[chromosome[0]]
+
         for i in range(len(chromosome) - 1):
-            number += tsp_data.product_to_product[chromosome[i]][chromosome[i + 1]].size()
-        number += tsp_data.end_distances[chromosome[len(chromosome) - 1]]
-        return (self.c / number) ** self.alpha
+            fitness += tsp_data.product_to_product[chromosome[i]][chromosome[i + 1]].size()
+        fitness += tsp_data.end_distances[chromosome[len(chromosome) - 1]]
+        return self.c / (fitness ** self.alpha)
 
-    def calc_probabilites(self, fitness):
-        probabilities = []
-        total_fit = 0
-        for i in range(len(fitness)):
-            total_fit = total_fit + fitness[i]
-        for i in range(len(fitness)):
-            probabilities.append(fitness[i] / total_fit)
-        # print(sum(probabilities))
-        return probabilities
-
-    def pick_parents(self, chromosomes, fitness):
+    def select_parents(self, chromosomes, fitness, population_factor):
+        """
+        selects parents to produce children based on the roulette wheel
+        :param chromosomes: chromosomes of the generation
+        :param fitness: fitness of the chromosomes
+        :param population_factor: factor which corresponds to how many parents are selected
+        :return: a set of selected parents
+        """
         parents = []
-        for i in range(int(self.pop_size / 2)):
-            current_sum = 0
+        # chromosomes = chromosomes
+
+        for i in range(int(self.pop_size / population_factor)):
             selected = self.select_one(chromosomes, fitness)
             index = chromosomes.index(selected)
-            # print(chromosomes)
             chromosomes.remove(selected)
-            # print("selected", selected)
             fitness.pop(index)
-
             parents.append(selected)
-        # print("parents", len(parents))
-        # print(parents)
+
         return parents
 
-    # def pick_parents(self, chromosomes, fitness):
-    #     parents = []
-    #     for i in range(int(self.pop_size / 2)):
-    #         current_sum = 0
-    #         parents.append(self.select_one(chromosomes, fitness))
-    #     print("parents", len(parents))
-    #     return parents
-    #
     def select_one(self, population, fitness):
-        max = sum(fitness)
-        pick = random.uniform(0, max)
+        """
+        roulette wheel which selects one chromosome from the
+        population based on probabilities.
+
+        :param population: set of chromosomes
+        :param fitness: fitness of the chromosomes
+        :return: the selected chromosome, if it fails to select a chromosome
+        it returns a random one
+        """
+        fitness_sum = sum(fitness)
+        roulette = random.uniform(0, fitness_sum)
         current = 0
+
         for i in range(len(population)):
             current += fitness[i]
-            if current >= pick:
+            if current >= roulette:
                 return population[i]
 
     def mutate(self, children):
+        """
+        mutates children with probability self.mutation_chance
+
+        :param children: a set of chromosomes
+        :return: mutated children
+        """
         mutants = []
+
         for i in range(len(children)):
             child = children[i]
             rand = random.uniform(0, 1)
@@ -97,17 +99,23 @@ class GeneticAlgorithm:
                 mutants.append(child)
             else:
                 mutants.append(child)
+
         return mutants
 
-    def cross_over(self, parent1, parent2):
-        # print("Parent 1", parent1)
-        # print("Parent 2", parent2)
+    def crossover(self, parent1, parent2):
+        """
+        The order crossover (OX)
+
+        :param parent1: a chromosome
+        :param parent2: a chromosome
+        :return: two children that are made with the help of crossover OX
+        """
         rand = random.uniform(0, 1)
 
-        if rand > self.fucking_prob:
+        # do crossover with probability self.reproducing_prob
+        if rand > self.reproducing_prob:
             return [parent1, parent2]
 
-        # size 18 0 - 17
         product_size = 17
         child_1 = []
         child_2 = []
@@ -123,6 +131,7 @@ class GeneticAlgorithm:
         else:
             cross_point_2 = random.randint(cross_point_1 + self.min_distance_crossover, product_size)
 
+        # values that remain unchanged in between crossover points
         for i in range(cross_point_1 + 1, cross_point_2 + 1):
             keep_1.append(parent1[i])
             keep_2.append(parent2[i])
@@ -140,110 +149,106 @@ class GeneticAlgorithm:
         for j in range(cross_point_1 + 1, len(sequence_2)):
             child_1.append(sequence_1[j])
             child_2.append(sequence_2[j])
-        # print("Child 1", child_1)
-        # print("Child 2", child_2)
 
         return [child_1, child_2]
 
-    def real_shuffle(self, chromosome):
-        random.shuffle(chromosome)
-
-    # This method should solve the TSP.
-    # @param pd the TSP data.
-    # @return the optimized product sequence.
     def solve_tsp(self, tsp_data):
+        """
+        algorithm that uses ga to solve travelling salesman problem
+
+        :param tsp_data: route data
+        :return: the best chromosome found
+        """
         chromosomes = []
         fitness = []
-        # Create initial population of n chromosomes +
-        # print("creating initial population")
+
+        # Create initial population of n chromosomes
         while len(chromosomes) < self.pop_size:
-            list = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17]
-            random.shuffle(list)
-            if not chromosomes.__contains__(list):
-                chromosomes.append(list)
-                print("Started from the bottom now we here", len(chromosomes))
-
-        # print(chromosomes)
-
-        # Evaluate fitness of each chromosome +
+            chromosome = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17]
+            random.shuffle(chromosome)
+            if not chromosomes.__contains__(chromosome):
+                chromosomes.append(chromosome)
 
         for g in range(self.generations):
+            print("-Generation", g)
+            new_chromosomes = []
+
+            # Evaluate fitness of each chromosome
             for i in range(len(chromosomes)):
                 fitness.append(self.fitness(chromosomes[i], tsp_data))
-            print("-Generation", g)
-            # Choose p/2 parents +
-            picked_parents = self.pick_parents(chromosomes, fitness)
 
-            mated_parents = []
-            new_chromosomes = []
-            # print(len(picked_parents))
-            # while len(mated_parents) < len(picked_parents):
+            # Choose p/2 parents
+            picked_parents = self.select_parents(chromosomes, fitness, 2)
+
+            # create a new population
             while len(new_chromosomes) < self.pop_size:
-                # print("-- number of fuckings", len(mated_parents))
-                # print("--- number of children", len(new_chromosomes))
-                # Randomly select 2 parents, apply crossover +
-                # parent1 = picked_parents[random.randint(0, len(picked_parents) - 1)]
+
+                # Randomly select 2 parents, apply crossover
                 parent1 = self.select_one(picked_parents, fitness)
                 parent2 = self.select_one(picked_parents, fitness)
-                # parent2 = picked_parents[random.randint(0, len(picked_parents) - 1)]
-                # while parent1 == parent2:
-                #     parent2 = picked_parents[random.randint(0, len(picked_parents) - 1)]
-                children = self.cross_over(parent1, parent2)
-                # Apply mutations +
+                children = self.crossover(parent1, parent2)
+
+                # Apply mutations
                 mutant_children = self.mutate(children)
                 new_chromosomes.extend(mutant_children)
-                # Repeat 4-5 until all parents are selected +
 
-            # Replace old population with new chromosomes +
-            # chromosomes = self.find_best_chromosomes(new_chromosomes, tsp_data)
+            # create a new population
             chromosomes.extend(new_chromosomes)
             chromosomes = self.find_best_chromosomes(chromosomes, tsp_data)
-
-            print("best individual", self.fitness(self.find_best_chromosome(chromosomes, tsp_data), tsp_data))
-            # Evaluate fitness of each chromosome +
             fitness = []
+            
+            print("best individual", self.fitness(self.find_best_chromosome(chromosomes, tsp_data), tsp_data))
 
-            # print("CHROMOSOMES", chromosomes)
-            # for i in range(len(chromosomes)):
-            #     new_fitness.append(self.fitness(chromosomes[i], tsp_data))
-            # print(fitness)
-            # Terminate if number of generations reached limit, otherwise go to step 3 +
         return self.find_best_chromosome(chromosomes, tsp_data)
 
     def find_best_chromosome(self, chromosomes, tsp_data):
+        """
+        finds a chromosome with the highest fitness
+        :return chromosome
+        """
+
         best = chromosomes[0]
         best_fitness = self.fitness(best, tsp_data)
 
         for chromosome in chromosomes:
-            fittness = self.fitness(chromosome, tsp_data)
-            if (fittness < best_fitness):
+            fitness = self.fitness(chromosome, tsp_data)
+            if fitness > best_fitness:
                 best = chromosome
         return best
 
     def find_best_chromosomes(self, new_chromosomes, tsp_data):
-        fitnesses = [self.fitness(x, tsp_data) for x in new_chromosomes]
+        """
+        find the best chromosomes in the population
 
-        fitnesses_and_chromosomes = list(zip(fitnesses, new_chromosomes))
-        fitnesses_and_chromosomes.sort(key=lambda x: x[0], reverse=True)
-        # print("length of new chromies:", len(new_chromosomes))
+        :param new_chromosomes: a list of chromosomes
+        :param tsp_data: route data
+        :return: an array of size self.pop_size of ebst chromosomes
+        """
+
+        fitness = [self.fitness(x, tsp_data) for x in new_chromosomes]
+
+        fitness_and_chromosomes = list(zip(fitness, new_chromosomes))
+        fitness_and_chromosomes.sort(key=lambda x: x[0], reverse=True)
         best_chromosomes = []
+
         for i in range(self.pop_size):
-            best_chromosomes.append(fitnesses_and_chromosomes[i][1])
+            best_chromosomes.append(fitness_and_chromosomes[i][1])
+
         return best_chromosomes
 
 
 # Assignment 2.b
 if __name__ == "__main__":
     # parameters
-    population_size = 1000
-    generations = 200
-    min_distance_crossover = 5
+    population_size = 500
+    gens = 200
+    cross_distance = 5
     persistFile = "./../data/productMatrixDist.txt"
 
     # setup optimization
     tsp_data = TSPData.read_from_file(persistFile)
     print("read file")
-    ga = GeneticAlgorithm(generations, population_size, min_distance_crossover)
+    ga = GeneticAlgorithm(gens, population_size, cross_distance)
 
     # run optimzation and write to file
     solution = ga.solve_tsp(tsp_data)
